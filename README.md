@@ -290,3 +290,6 @@ camera-surveillance/
   versioned database migrations.
 - **Stream management.** Cap concurrent MJPEG connections and tear down idle
   streams to bound resource use as camera counts grow.
+
+  ## Current Project Demo Video Link
+  <https://drive.google.com/file/d/1b08YNMtup7rfDnWyn9kurXCQfCUjsq_R/view?usp=sharing>
