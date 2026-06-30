@@ -41,13 +41,15 @@ off-the-shelf infrastructure.
 The key architectural idea is that the three kinds of traffic travel on
 separate paths — in particular, **video never passes through the API or the
 database**.
-             REST + WebSocket
+
+``` REST + WebSocket
 Browser  <───────────────────────>  Backend  ──SQL──>  Postgres
 │                                    │
 │                            Redis (message bus)
 │                       commands ↓        ↑ events
 │                                    │
 └─────────── MJPEG video ────────  Worker  ──RTSP──>  MediaMTX
+```
 
 1. **Control / data** — REST (login, CRUD, start/stop) and a WebSocket (live
    alerts + stats) between browser and backend.
@@ -217,6 +219,7 @@ The key architectural idea is that the three kinds of traffic travel on
 separate paths — in particular, **video never passes through the API or the
 database**.
 
+```
 camera-surveillance/
 ├── docker-compose.yml        # orchestrates all six services
 ├── .env / .env.example       # secrets and config
@@ -228,6 +231,7 @@ camera-surveillance/
 │   └── main.py
 └── frontend/                 # React + TypeScript
 └── src/{pages,components,hooks,auth,api,styles}
+```
 
 ---
 
