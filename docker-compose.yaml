@@ -1,0 +1,91 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: surveillance-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  mediamtx:
+    image: bluenviron/mediamtx:latest-ffmpeg
+    container_name: surveillance-mediamtx
+    restart: unless-stopped
+    ports:
+      - "8554:8554"
+      - "8889:8889"
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml
+      - ./media/sample.avi:/sample.avi:ro
+
+  worker:
+    build: ./worker
+    container_name: surveillance-worker
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379
+      OPENCV_FFMPEG_CAPTURE_OPTIONS: "rtsp_transport;tcp"
+    depends_on:
+      redis:
+        condition: service_healthy
+      mediamtx:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./worker:/app
+      
+  backend:
+    build: ./backend
+    container_name: surveillance-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  postgres:
+    image: postgres:16
+    container_name: surveillance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: surveillance-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres-data:

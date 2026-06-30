@@ -1,0 +1,4 @@
+paths:
+  cam1:
+    runOnInit: ffmpeg -re -stream_loop -1 -i /sample.avi -c:v libx264 -preset ultrafast -tune zerolatency -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInitRestart: yes
